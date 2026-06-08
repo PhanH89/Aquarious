@@ -1,0 +1,366 @@
+﻿<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản Lý Cửa Hàng Thủy Sinh - Bảo Mật Token</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f6f9;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        h1, h2 {
+            color: #333;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        input[type="text"], input[type="number"], input[type="password"], input[type="email"], textarea {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+            button:hover {
+                background-color: #0056b3;
+            }
+
+        .btn-success {
+            background-color: #28a745;
+        }
+
+            .btn-success:hover {
+                background-color: #218838;
+            }
+
+        .btn-danger {
+            background-color: #dc3545;
+        }
+
+            .btn-danger:hover {
+                background-color: #bd2130;
+            }
+
+        .auth-box {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            background: #e9ecef;
+            padding: 20px;
+            border-radius: 6px;
+            margin-bottom: 30px;
+        }
+
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .product-card {
+            background: #fff;
+            border: 1px solid #e1e4e8;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            position: relative;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+            .product-card img {
+                max-width: 100%;
+                height: 150px;
+                object-fit: cover;
+                border-radius: 4px;
+                margin-bottom: 10px;
+            }
+
+        .user-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #d4edda;
+            padding: 10px 20px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>🐠 Cửa Hàng Thủy Sinh Cao Cấp</h1>
+
+        <div id="userInfoBox" class="user-info hidden">
+            <div>Xin chào, <strong id="currentUsername">User</strong>! (Đã bảo mật bằng JWT Token)</div>
+            <button onclick="logout()" class="btn-danger">Đăng Xuất (Logout)</button>
+        </div>
+
+        <div id="authBox" class="auth-box">
+            <div>
+                <h2>🔑 Đăng Nhập</h2>
+                <form id="loginForm">
+                    <div class="form-group"><label>Username:</label><input type="text" id="loginUser" required></div>
+                    <div class="form-group"><label>Mật khẩu:</label><input type="password" id="loginPass" required></div>
+                    <button type="submit">Đăng Nhập</button>
+                </form>
+            </div>
+            <div style="border-left: 1px solid #ccc; padding-left: 30px;">
+                <h2>📝 Đăng Ký Tài Khoản</h2>
+                <form id="registerForm">
+                    <div class="form-group"><label>Username:</label><input type="text" id="regUser" required></div>
+                    <div class="form-group"><label>Email:</label><input type="email" id="regEmail" required></div>
+                    <div class="form-group"><label>Mật khẩu:</label><input type="password" id="regPass" required></div>
+                    <button type="submit" class="btn-success">Đăng Ký</button>
+                </form>
+            </div>
+        </div>
+
+        <hr>
+
+        <div id="mainContent" class="hidden">
+            <h2 id="formTitle">Thêm Sản Phẩm Mới</h2>
+
+            <form id="productForm">
+                <input type="hidden" id="productId">
+
+                <div class="form-group"><label>Tên sản phẩm:</label><input type="text" id="name" required></div>
+                <div class="form-group"><label>Giá tiền:</label><input type="number" id="price" required></div>
+                <div class="form-group"><label>Mô tả:</label><textarea id="description" rows="2"></textarea></div>
+                <div class="form-group">
+                    <label>Hình ảnh sản phẩm (Để trống nếu giữ nguyên ảnh cũ):</label>
+                    <input type="file" id="imageFile" accept="image/*">
+                </div>
+
+                <button type="submit" id="btnSubmitForm" class="btn-success">Lưu Sản Phẩm</button>
+                <button type="button" id="btnCancelEdit" class="btn-danger hidden" onclick="cancelEdit()" style="margin-left: 10px;">Hủy Sửa</button>
+            </form>
+
+            <hr style="margin-top: 30px;">
+            <h2>Danh Sách Sản Phẩm Trong Kho</h2>
+            <div class="product-grid" id="productContainer"></div>
+        </div>
+    </div>
+
+    <script>
+        // Cấu hình các đường dẫn API đầu não
+        const API_AUTH = '/api/Auth';
+        const API_PRODUCTS = '/api/Products';
+
+        // --- 1. HÀM INTERCEPTOR FETCH: TỰ ĐỘNG XỬ LÝ ĐÍNH KÈM VÀ REFRESH TOKEN ---
+        async function authorizedFetch(url, options = {}) {
+            // Tự động thêm Header Authorization chứa Access Token nếu có trong máy
+            options.headers = options.headers || {};
+            const accessToken = localStorage.getItem('accessToken');
+            if (accessToken) {
+                options.headers['Authorization'] = `Bearer ${accessToken}`;
+            }
+
+            let response = await fetch(url, options);
+
+            // NẾU TRẢ VỀ 401 (Access Token hết hạn), TIẾN HÀNH ĐI REFRESH TOKEN NGẦM
+            if (response.status === 401) {
+                console.warn("Access Token hết hạn! Đang tiến hành gia hạn tự động...");
+                const refreshToken = localStorage.getItem('refreshToken');
+
+                if (!refreshToken) {
+                    logout();
+                    return response;
+                }
+
+                // Gọi API refresh sang bên Backend để lấy cặp Token mới
+                const refreshResponse = await fetch(`${API_AUTH}/refresh-token`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ refreshToken: refreshToken })
+                });
+
+                if (refreshResponse.ok) {
+                    const tokenData = await refreshResponse.json();
+                    // Lưu cặp token mới cứng vào máy
+                    localStorage.setItem('accessToken', tokenData.accessToken);
+                    localStorage.setItem('refreshToken', tokenData.refreshToken);
+
+                    // Gắn lại token mới vào Header và thực hiện lại Request cũ lần nữa cho User
+                    options.headers['Authorization'] = `Bearer ${tokenData.accessToken}`;
+                    response = await fetch(url, options);
+                } else {
+                    // Nếu refresh token cũng hết hạn luôn -> Cưỡng chế đăng xuất
+                    alert("Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!");
+                    logout();
+                }
+            }
+            return response;
+        }
+
+        // --- 2. LOGIC XỬ LÝ ĐĂNG KÝ / ĐĂNG NHẬP / ĐĂNG XUẤT ---
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const body = {
+                username: document.getElementById('regUser').value,
+                email: document.getElementById('regEmail').value,
+                password: document.getElementById('regPass').value
+            };
+            const res = await fetch(`${API_AUTH}/register`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+            if (res.ok) { alert('Đăng ký tài khoản thành công! Hãy đăng nhập.'); document.getElementById('registerForm').reset(); }
+            else { const err = await res.json(); alert('Lỗi: ' + (err.message || 'Đăng ký thất bại')); }
+        });
+
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const body = {
+                username: document.getElementById('loginUser').value,
+                password: document.getElementById('loginPass').value
+            };
+            const res = await fetch(`${API_AUTH}/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+            if (res.ok) {
+                const data = await res.json();
+                localStorage.setItem('accessToken', data.accessToken);
+                localStorage.setItem('refreshToken', data.refreshToken);
+                localStorage.setItem('username', data.username);
+                checkAuthUI();
+            } else { alert('Sai tài khoản hoặc mật khẩu!'); }
+        });
+
+        function logout() {
+            localStorage.clear();
+            checkAuthUI();
+        }
+
+        function checkAuthUI() {
+            const username = localStorage.getItem('username');
+            if (username) {
+                document.getElementById('authBox').classList.add('hidden');
+                document.getElementById('userInfoBox').classList.remove('hidden');
+                document.getElementById('mainContent').classList.remove('hidden');
+                document.getElementById('currentUsername').innerText = username;
+                loadProducts();
+            } else {
+                document.getElementById('authBox').classList.remove('hidden');
+                document.getElementById('userInfoBox').classList.add('hidden');
+                document.getElementById('mainContent').classList.add('hidden');
+            }
+        }
+
+        // --- 3. LOGIC CRUD SẢN PHẨM (GỌI QUA HÀM HỖ TRỢ authorizedFetch) ---
+        async function loadProducts() {
+            const res = await authorizedFetch(API_PRODUCTS);
+            if (!res.ok) return;
+            const products = await res.json();
+            const container = document.getElementById('productContainer');
+            container.innerHTML = '';
+            products.forEach(p => {
+                const card = document.createElement('div');
+                card.className = 'product-card';
+                card.innerHTML = `
+            <img src="${p.imageUrl || 'https://via.placeholder.com/150'}">
+            <h3>${p.name}</h3>
+            <p class="price">${Number(p.price).toLocaleString('vi-VN')} đ</p>
+            <div style="margin-top: 10px; display: flex; gap: 10px; justify-content: center;">
+                <button onclick="editProduct(${JSON.stringify(p).replace(/"/g, '&quot;')})" style="background-color: #ffc107; color: black; padding: 5px 10px; font-size:12px;">Sửa</button>
+                <button onclick="deleteProduct(${p.id})" class="btn-danger" style="padding: 5px 10px; font-size:12px;">Xóa</button>
+            </div>
+        `;
+                container.appendChild(card);
+            });
+        }
+
+        document.getElementById('productForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData();
+            formData.append('Name', document.getElementById('name').value);
+            formData.append('Price', document.getElementById('price').value);
+            formData.append('Description', document.getElementById('description').value);
+            const file = document.getElementById('imageFile').files[0];
+            if (file) formData.append('ImageFile', file);
+
+            const res = await authorizedFetch(API_PRODUCTS, { method: 'POST', body: formData });
+            if (res.ok) {
+                document.getElementById('productForm').reset();
+                loadProducts();
+            }
+        });
+
+        async function deleteProduct(id) {
+            if (confirm('Bạn có chắc muốn xóa sản phẩm này không?')) {
+                const res = await authorizedFetch(`${API_PRODUCTS}/${id}`, { method: 'DELETE' });
+                if (res.ok) loadProducts();
+            }
+        }
+        // Hàm kích hoạt chế độ sửa: Đổ dữ liệu cũ lên form nhập liệu
+        function editProduct(product) {
+            document.getElementById('formTitle').innerText = "📝 Chỉnh Sửa Sản Phẩm";
+            document.getElementById('btnSubmitForm').innerText = "Cập Nhật Thay Đổi";
+            document.getElementById('btnSubmitForm').className = "button"; // đổi màu nút
+            document.getElementById('btnCancelEdit').classList.remove('hidden');
+
+            // Điền dữ liệu vào các ô input
+            document.getElementById('productId').value = product.id;
+            document.getElementById('name').value = product.name;
+            document.getElementById('price').value = product.price;
+            document.getElementById('description').value = product.description || '';
+
+            // Cuộn màn hình lên trên cùng để người dùng nhìn thấy form đang sửa
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Hàm thoát chế độ sửa, đưa form về trạng thái Thêm mới mặc định
+        function cancelEdit() {
+            document.getElementById('formTitle').innerText = "Thêm Sản Phẩm Mới";
+            document.getElementById('btnSubmitForm').innerText = "Lưu Sản Phẩm";
+            document.getElementById('btnSubmitForm').className = "btn-success";
+            document.getElementById('btnCancelEdit').classList.add('hidden');
+
+            document.getElementById('productForm').reset();
+            document.getElementById('productId').value = ''; // xóa trống Id ẩn
+        }
+        // Khởi chạy kiểm tra trạng thái đăng nhập ngay khi mở trang
+        checkAuthUI();
+    </script>
+</body>
+</html>
