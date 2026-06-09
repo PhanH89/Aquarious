@@ -142,4 +142,6 @@ C:\Users\ASUS\OneDrive\Desktop\References\practice\DemoCRUD_LOGIN\bin\Debug\net1
 C:\Users\ASUS\OneDrive\Desktop\References\practice\DemoCRUD_LOGIN\bin\Debug\net10.0\Swashbuckle.AspNetCore.SwaggerUI.dll
 C:\Users\ASUS\OneDrive\Desktop\References\practice\DemoCRUD_LOGIN\bin\Debug\net10.0\DemoCRUD_LOGIN.staticwebassets.runtime.json
 C:\Users\ASUS\OneDrive\Desktop\References\practice\DemoCRUD_LOGIN\bin\Debug\net10.0\Microsoft.AspNetCore.Authentication.JwtBearer.dll
-C:\Users\ASUS\OneDrive\Desktop\References\practice\DemoCRUD_LOGIN\obj\Debug\net10.0\compressed\wrioo74yhc-{0}-tssqzt2v7q-tssqzt2v7q.gz
+C:\Users\ASUS\OneDrive\Desktop\References\practice\DemoCRUD_LOGIN\obj\Debug\net10.0\DemoCRUD_LOGIN.sourcelink.json
+C:\Users\ASUS\OneDrive\Desktop\References\practice\DemoCRUD_LOGIN\bin\Debug\net10.0\BCrypt-Net-Next.dll
+C:\Users\ASUS\OneDrive\Desktop\References\practice\DemoCRUD_LOGIN\obj\Debug\net10.0\compressed\wrioo74yhc-{0}-0awibojsrn-0awibojsrn.gz

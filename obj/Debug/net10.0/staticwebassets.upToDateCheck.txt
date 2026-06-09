@@ -1,5 +1,6 @@
-wwwroot\index.html
-wwwroot\uploads\b1a11c7e-4570-4314-99e2-1df00f372503.jpg
 wwwroot\uploads\42275c63-f9bf-4634-a661-4a1e43328392.jpg
+wwwroot\uploads\b1a11c7e-4570-4314-99e2-1df00f372503.jpg
+wwwroot\uploads\f110c826-14bd-45a0-8338-eabdbef58588.jpg
 wwwroot\vnvaxv5w.y4h~
+wwwroot\index.html
 C:\Users\ASUS\OneDrive\Desktop\References\practice\DemoCRUD_LOGIN\wwwroot\index.html

@@ -25,6 +25,7 @@ namespace DemoCRUD_LOGIN.Controllers
 
         // 1. READ ALL (Giữ nguyên)
         [HttpGet]
+        [Authorize(Roles = "Admin,Employee,Customer")]
         public async Task<ActionResult<IEnumerable<Product>>> GetProducts()
         {
             return await _context.Products.ToListAsync();
@@ -41,6 +42,7 @@ namespace DemoCRUD_LOGIN.Controllers
 
         // 3. NÂNG CẤP CREATE: Thêm sản phẩm kèm Upload Ảnh thực chiến
         [HttpPost]
+        [Authorize(Roles = "Admin,Employee")]
         public async Task<ActionResult<Product>> CreateProduct([FromForm] ProductCreateDto dto)
         {
             // Khởi tạo đối tượng Product gốc để chuẩn bị lưu database
@@ -87,6 +89,7 @@ namespace DemoCRUD_LOGIN.Controllers
 
         // 4. DELETE (Nâng cấp thêm tính năng: Xóa sản phẩm thì xóa luôn file ảnh vật lý trên ổ cứng)
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteProduct(int id)
         {
             var product = await _context.Products.FindAsync(id);
@@ -108,9 +111,10 @@ namespace DemoCRUD_LOGIN.Controllers
             return Ok(new { message = "Xóa sản phẩm và ảnh thành công!" });
         }
         // ==========================================
-        // API CẬP NHẬT/SỬA SẢN PHẨM (MỚI BỔ SUNG)
+        // API CẬP NHẬT/SỬA SẢN PHẨM (ĐÃ TỐI ƯU)
         // ==========================================
         [HttpPut("{id}")]
+        [Authorize(Roles = "Admin,Employee")]
         public async Task<IActionResult> PutProduct(int id, [FromForm] ProductCreateDto dto)
         {
             // 1. Tìm sản phẩm gốc trong Database xem có tồn tại không
@@ -128,10 +132,22 @@ namespace DemoCRUD_LOGIN.Controllers
             // 3. XỬ LÝ ẢNH: Nếu người dùng có chọn file ảnh mới thì tiến hành lưu đè
             if (dto.ImageFile != null && dto.ImageFile.Length > 0)
             {
-                var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
+                string wwwRootPath = _environment.WebRootPath;
+                string uploadsFolder = Path.Combine(wwwRootPath, "uploads");
+
                 if (!Directory.Exists(uploadsFolder))
                 {
                     Directory.CreateDirectory(uploadsFolder);
+                }
+
+                // 🔥 ĐOẠN BỔ SUNG: Xóa file ảnh cũ trên ổ cứng (nếu có) trước khi lưu ảnh mới
+                if (!string.IsNullOrEmpty(product.ImageUrl))
+                {
+                    string oldFilePath = Path.Combine(wwwRootPath, product.ImageUrl.TrimStart('/'));
+                    if (System.IO.File.Exists(oldFilePath))
+                    {
+                        System.IO.File.Delete(oldFilePath);
+                    }
                 }
 
                 // Tạo tên file duy nhất bằng Guid để tránh trùng lặp

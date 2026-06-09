@@ -2,12 +2,13 @@
 using Microsoft.EntityFrameworkCore;
 using DemoCRUD_LOGIN.Data;
 using DemoCRUD_LOGIN.Models;
+using DemoCRUD_LOGIN.Dtos; // Dùng trực tiếp bộ DTO từ folder Dtos của bạn
 using System.Security.Claims;
 using System.Security.Cryptography;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Text;
-using System.ComponentModel.DataAnnotations;
+using BCrypt.Net; // Kích hoạt thư viện mã hóa chuẩn BCrypt
 
 namespace DemoCRUD_LOGIN.Controllers
 {
@@ -24,31 +25,7 @@ namespace DemoCRUD_LOGIN.Controllers
             _context = context;
         }
 
-        // --- LỚP HỨNG DỮ LIỆU ĐĂNG KÝ (DTO) KÈM VALIDATE ---
-        public class UserRegisterDto
-        {
-            [Required(ErrorMessage = "Username không được trống")]
-            public string Username { get; set; } = string.Empty;
-
-            [Required(ErrorMessage = "Email không được trống")]
-            [EmailAddress(ErrorMessage = "Định dạng Email không đúng")]
-            public string Email { get; set; } = string.Empty;
-
-            [Required(ErrorMessage = "Mật khẩu không được trống")]
-            [MinLength(6, ErrorMessage = "Mật khẩu phải từ 6 ký tự trở lên")]
-            public string Password { get; set; } = string.Empty;
-        }
-
-        public class UserLoginDto
-        {
-            public string Username { get; set; } = string.Empty;
-            public string Password { get; set; } = string.Empty;
-        }
-
-        public class TokenRequestDto
-        {
-            public string RefreshToken { get; set; } = string.Empty;
-        }
+        // 💡 ĐÃ XÓA CÁC CLASS DTO TRÙNG LẶP Ở ĐÂY ĐỂ TRÁNH XUNG ĐỘT HỆ THỐNG
 
         // ==========================================
         // 1. API ĐĂNG KÝ TÀI KHOẢN
@@ -59,14 +36,15 @@ namespace DemoCRUD_LOGIN.Controllers
             if (await _context.Users.AnyAsync(u => u.Username.ToLower() == dto.Username.ToLower()))
                 return BadRequest(new { message = "Tên đăng nhập này đã tồn tại trên hệ thống!" });
 
-            // Thực tế nên dùng BCrypt để hash mật khẩu, ở đây demo hash bằng SHA256 cho nhanh gọn
-            var passwordHash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(dto.Password)));
+            // Sử dụng BCrypt chính chủ để băm mật khẩu bảo mật
+            var passwordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password);
 
             var user = new User
             {
                 Username = dto.Username,
                 Email = dto.Email,
-                PasswordHash = passwordHash
+                PasswordHash = passwordHash,
+                Role = dto.Role // Hoạt động mượt mà nhờ dùng DTO chuẩn ngoài folder
             };
 
             _context.Users.Add(user);
@@ -81,13 +59,16 @@ namespace DemoCRUD_LOGIN.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] UserLoginDto dto)
         {
-            var passwordHash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(dto.Password)));
+            // Tìm user theo tên đăng nhập trước
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Username == dto.Username);
 
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Username == dto.Username && u.PasswordHash == passwordHash);
-            if (user == null)
+            // Dùng BCrypt.Verify để đối chiếu mật khẩu thô gửi lên với chuỗi băm dưới DB
+            if (user == null || !BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash))
+            {
                 return Unauthorized(new { message = "Tài khoản hoặc mật khẩu không chính xác!" });
+            }
 
-            // Sinh cặp Token xịn
+            // Sinh cặp Token xịn khi xác thực thành công
             var accessToken = GenerateAccessToken(user);
             var refreshToken = GenerateRefreshToken();
 
@@ -100,7 +81,8 @@ namespace DemoCRUD_LOGIN.Controllers
             {
                 accessToken = accessToken,
                 refreshToken = refreshToken,
-                username = user.Username
+                username = user.Username,
+                role = user.Role // Trả thêm role về cho Frontend làm badge hiển thị
             });
         }
 
@@ -135,16 +117,16 @@ namespace DemoCRUD_LOGIN.Controllers
         {
             var claims = new[] {
                 new Claim(ClaimTypes.Name, user.Username),
-                new Claim(ClaimTypes.Email, user.Email)
+                new Claim(ClaimTypes.Email, user.Email),
+                new Claim(ClaimTypes.Role, user.Role) // Đóng gói quyền của User vào trong Token!
             };
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSecret));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
-            // Để thời gian hết hạn cực ngắn (1 phút) để bạn dễ test tính năng tự động Refresh ngầm dưới Frontend
             var token = new JwtSecurityToken(
                 claims: claims,
-                expires: DateTime.Now.AddMinutes(1),
+                expires: DateTime.Now.AddMinutes(5), // Thời gian sống token
                 signingCredentials: creds
             );
 

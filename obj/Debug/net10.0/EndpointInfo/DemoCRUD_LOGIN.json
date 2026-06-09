@@ -441,11 +441,6 @@
         }
       },
       "UserRegisterDto": {
-        "required": [
-          "username",
-          "email",
-          "password"
-        ],
         "type": "object",
         "properties": {
           "username": {
@@ -455,7 +450,9 @@
             "type": "string"
           },
           "password": {
-            "minLength": 6,
+            "type": "string"
+          },
+          "role": {
             "type": "string"
           }
         }

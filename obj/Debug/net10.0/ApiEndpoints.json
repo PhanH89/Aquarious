@@ -9,7 +9,7 @@
     "Parameters": [
       {
         "Name": "dto",
-        "Type": "DemoCRUD_LOGIN.Controllers.AuthController\u002BUserLoginDto",
+        "Type": "DemoCRUD_LOGIN.Dtos.UserLoginDto",
         "IsRequired": true
       }
     ],
@@ -25,7 +25,7 @@
     "Parameters": [
       {
         "Name": "dto",
-        "Type": "DemoCRUD_LOGIN.Controllers.AuthController\u002BTokenRequestDto",
+        "Type": "DemoCRUD_LOGIN.Dtos.TokenRequestDto",
         "IsRequired": true
       }
     ],
@@ -41,7 +41,7 @@
     "Parameters": [
       {
         "Name": "dto",
-        "Type": "DemoCRUD_LOGIN.Controllers.AuthController\u002BUserRegisterDto",
+        "Type": "DemoCRUD_LOGIN.Dtos.UserRegisterDto",
         "IsRequired": true
       }
     ],
